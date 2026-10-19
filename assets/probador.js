@@ -33,7 +33,7 @@ const P=Object.fromEntries(PRODUCTS.map(p=>[p.id,p]));
 const cv=$('cv'),cx=cv.getContext('2d');
 let photo=null,pxPerCm=4,calibrated=false,items=[],sel=null,night=.86,drag=null,calMode=false,calLine=null;
 const light=document.createElement('canvas'),lg=light.getContext('2d');
-const loadImgs=()=>Promise.all(IMGS.map(k=>new Promise(r=>{const i=new Image();i.onload=()=>{IM[k]=i;r()};i.onerror=r;i.src='img/prob/'+k+'.png'})));
+const loadImgs=()=>Promise.all([...IMGS.map(k=>['img/prob/'+k+'.png',k]),['img/logo-pueyrredon-blanco.png','logo']].map(([src,k])=>new Promise(r=>{const i=new Image();i.onload=()=>{IM[k]=i;r()};i.onerror=r;i.src=src})));
 
 /* ---------- geometría ---------- */
 const cm=(v,it)=>v*pxPerCm*(it?it.k:1);
@@ -297,13 +297,18 @@ const savePrefs=()=>{try{localStorage.setItem('probador-mayorista',JSON.stringif
 shopEl.oninput=savePrefs;phoneEl.oninput=savePrefs;
 $('export').onclick=()=>{
   track('imagen_creada',{productos:[...new Set(items.map(i=>i.id))].join(','),cantidad:items.length});
-  const W=cv.width,H=cv.height,band=Math.round(Math.max(64,W*.06)),c=document.createElement('canvas');c.width=W;c.height=H+band;const g=c.getContext('2d');
-  render(g,true);g.fillStyle='#ffffff';g.fillRect(0,H,W,band);g.fillStyle='#e1e7ee';g.fillRect(0,H,W,Math.max(1,band*.02));
-  const pad=band*.34,shop=shopEl.value.trim(),phone=phoneEl.value.trim();g.textBaseline='middle';
-  g.fillStyle='#0f1d2e';g.font=`700 ${Math.round(band*.3)}px "Barlow Semi Condensed",Barlow,system-ui,sans-serif`;g.fillText(shop||'Simulación de producto',pad,H+band*.36,W*.55);
-  const names=[...new Set(items.map(i=>P[i.id].name))].join('  ·  ');g.fillStyle='#677689';g.font=`500 ${Math.round(band*.19)}px Barlow,system-ui,sans-serif`;g.fillText(names||'',pad,H+band*.72,W*.62);
-  g.textAlign='right';if(phone){g.fillStyle='#0f1d2e';g.font=`600 ${Math.round(band*.24)}px Barlow,system-ui,sans-serif`;g.fillText(phone,W-pad,H+band*.36)}
-  g.fillStyle='#97a3b2';g.font=`600 ${Math.round(band*.15)}px Barlow,system-ui,sans-serif`;g.fillText('SIMULACIÓN · LA LUZ ES APROXIMADA',W-pad,H+band*(phone?.72:.5));
+  const W=cv.width,H=cv.height,band=Math.round(Math.max(96,W*.085)),c=document.createElement('canvas');c.width=W;c.height=H+band;const g=c.getContext('2d');
+  render(g,true);g.fillStyle='#062a47';g.fillRect(0,H,W,band);g.fillStyle='#e21e1f';g.fillRect(0,H,W,Math.max(2,band*.04));
+  const pad=band*.3,shop=shopEl.value.trim(),phone=phoneEl.value.trim(),f=(w,px)=>`${w} ${Math.round(px)}px Barlow,system-ui,sans-serif`;g.textBaseline='middle';
+  // Nuestra marca, bien visible; los datos del local a la derecha para que el cliente sepa dónde comprarlo
+  const L=IM.logo,lh=band*.5,lw=L?lh*L.width/L.height:0;if(L)g.drawImage(L,pad,H+band*.1,lw,lh);
+  const all=[...new Set(items.map(i=>P[i.id].name))],mw=shop||phone?W*.58:W-2*pad,tail='Simulación: la luz es aproximada';g.fillStyle='#a9c3db';g.font=f(500,band*.135);
+  let line=all.length?all.join('  ·  ')+'   —   '+tail:tail;for(let n=all.length-1;n>0&&g.measureText(line).width>mw;n--)line=all.slice(0,n).join('  ·  ')+` y ${all.length-n} más   —   `+tail;
+  g.fillText(line,pad,H+band*.8,mw);
+  if(shop||phone){g.textAlign='right';const x=W-pad;
+    g.fillStyle='#9cc7ea';g.font=f(600,band*.12);g.fillText('CONSULTÁ EN',x,H+band*.25);
+    g.fillStyle='#fff';g.font=`700 ${Math.round(band*.24)}px "Barlow Semi Condensed",Barlow,system-ui,sans-serif`;g.fillText(shop||phone,x,H+band*.5,W*.38);
+    if(shop&&phone){g.fillStyle='#dbe7f2';g.font=f(500,band*.16);g.fillText(phone,x,H+band*.76)}}
   const url=c.toDataURL('image/jpeg',.92);$('resImg').src=url;$('resDl').href=url;$('result').hidden=false};
 $('resClose').onclick=()=>$('result').hidden=true;
 
