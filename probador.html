@@ -22,7 +22,7 @@
   <nav class="nav" aria-label="Secciones"><a href="catalogo.html">Catálogo</a><a href="probador.html" aria-current=page>Probador</a></nav>
   <a class="btn wa sm cta" data-wa="encabezado" href="https://wa.me/5491176033649?text=Hola%2C%20quiero%20consultar%20precios%20mayoristas." target="_blank" rel="noopener" aria-label="Consultar por WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9.5c.4 2 1.6 3.4 3.6 4.4"/></svg><span class="lbl">Consultar precios</span></a>
 </div></header>
-<div class="app">
+<div class="app" id="app">
   <aside class="lib" aria-label="Productos para probar">
     <div class="lib-head"><h1>Probador</h1><span id="count"></span></div>
     <div id="cat" class="cat"></div>
@@ -49,10 +49,23 @@
     </div>
     <canvas id="cv" hidden aria-label="Foto con los productos colocados"></canvas>
     <div class="hint" id="hint" hidden>Arrastrá el producto para moverlo. Tocá uno para ajustarlo.</div>
+    <div class="calbox" id="calBox" hidden>
+      <p><b>Medir:</b> arrastrá sobre la foto de punta a punta de algo que sepas cuánto mide, como una puerta.</p>
+      <div class="calrow">
+        <label class="calcm">Mide <input id="calCm" type="number" min="5" max="3000" value="200" inputmode="numeric"> cm</label>
+        <button class="btn primary sm" id="calOk" type="button" disabled>Aplicar</button>
+        <button class="btn sm ghost" id="calCancel" type="button">Cancelar</button>
+      </div>
+    </div>
+    <div class="mbar" id="mbar" hidden>
+      <button class="mb" id="mAdjust" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Ajustar</button>
+      <button class="mb primary" id="mExport" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14"/></svg>Crear imagen</button>
+    </div>
   </main>
 
-  <aside class="props" aria-label="Ajustes">
-    <section class="sec">
+  <aside class="props" id="props" aria-label="Ajustes">
+    <div class="sheet-head"><b>Ajustes</b><button class="btn sm" id="sheetClose" type="button">Listo</button></div>
+    <section class="sec" id="selSec">
       <h3>Producto seleccionado</h3>
       <div class="muted-box" id="selEmpty">Tocá un producto de la lista para sumarlo a la foto, o tocá uno que ya esté en la foto para ajustarlo.</div>
       <div id="selBox" class="selbox" hidden>
@@ -70,14 +83,9 @@
     <section class="sec">
       <h3>Medida real</h3>
       <p class="note" id="scaleNote"></p>
-      <div class="calib" id="calBox" hidden>
-        <p class="note strong">Arrastrá sobre la foto de punta a punta de algo que sepas cuánto mide.</p>
-        <label class="field"><span>¿Cuántos cm mide?</span><input id="calCm" type="number" min="5" max="3000" value="200" inputmode="numeric"></label>
-        <div class="row"><button class="btn primary sm" id="calOk" type="button" disabled>Aplicar medida</button><button class="btn sm ghost" id="calCancel" type="button">Cancelar</button></div>
-      </div>
     </section>
 
-    <section class="sec">
+    <section class="sec" id="expSec">
       <h3>Imagen para tu cliente</h3>
       <label class="field"><span>Nombre de tu comercio</span><input id="shop" type="text" maxlength="40" placeholder="Ej.: Electricidad San Martín" autocomplete="organization"></label>
       <label class="field"><span>Teléfono o WhatsApp (opcional)</span><input id="phone" type="text" maxlength="30" placeholder="Ej.: 11 5555-5555" inputmode="tel"></label>

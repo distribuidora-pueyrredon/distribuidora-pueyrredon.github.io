@@ -31,6 +31,7 @@ const PRODUCTS=[
   {sec:'Exterior',id:'reflector',type:'photo',img:'proyector-sensor',w:14,sizes:[['10 W',14],['30 W',19],['50 W',23]],flood:[.6,.33],on:'proyector-sensor-on',name:'Reflector LED con sensor',spec:'10, 30 y 50 W · negro',thumb:'il3',q:'con sensor',approx:1},
   {sec:'Cocina',id:'bajomesada',type:'bajo',name:'Listón LED bajo mesada',spec:'60, 90 y 120 cm · con tecla',thumb:'il64',q:'bajo mesada'},
 ];
+const SHORT={guirnalda:'Guirnalda',colgante:'Colgante',plafonr:'Plafón red.',plafonc:'Plafón cuad.',panel:'Panel',spot:'Spot',apcuad:'Aplique cuad.',aparco:'Aplique 6 W',appir:'Aplique pirám.',apcaja:'Aplique caja',tortuga:'Tortuga',reflector:'Reflector',bajomesada:'Bajo mesada'};
 const P=Object.fromEntries(PRODUCTS.map(p=>[p.id,p]));
 const cv=$('cv'),cx=cv.getContext('2d');
 let photo=null,pxPerCm=4,calibrated=false,items=[],sel=null,night=.86,drag=null,calMode=false,calLine=null;
@@ -210,8 +211,14 @@ function newItem(id){
   if(p.type==='bajo')return{...b,len:60,rot:0,x:W/2,y:H*.4};
   return{...b,size:p.w,x:W/2,y:H*.4};
 }
-function addProduct(id){if(!photo){toast('Primero subí una foto del lugar');return}const it=newItem(id);items.push(it);select(it);track('producto_agregado',{producto:id});if(matchMedia('(max-width:900px)').matches)$('stage').scrollIntoView({behavior:'smooth',block:'start'})}
+function addProduct(id){if(!photo){toast('Primero subí una foto del lugar');return}const it=newItem(id);items.push(it);select(it);track('producto_agregado',{producto:id})}
 function select(it){sel=it;buildSel();render()}
+/* Celular: los ajustes se abren en una hoja desde abajo */
+const mob=()=>matchMedia('(max-width:900px)').matches;
+function sheet(open,sec){$('app').classList.toggle('sheet',open);if(open&&sec)requestAnimationFrame(()=>{const pr=$('props');pr.scrollTop=sec==='selSec'?0:pr.scrollTop+$(sec).getBoundingClientRect().top-pr.getBoundingClientRect().top-$('props').querySelector('.sheet-head').offsetHeight-8})}
+$('sheetClose').onclick=()=>sheet(false);
+$('mAdjust').onclick=()=>sheet(true,'selSec');
+$('mExport').onclick=()=>{if(shopEl.value.trim())$('export').click();else{sheet(true,'expSec');toast('Poné el nombre de tu comercio y tocá Crear imagen')}};
 
 function slider(lbl,min,max,step,val,fv,on){const f=document.createElement('label');f.className='field';
   f.innerHTML=`<span class="lab"><span>${lbl}</span><output></output></span><input type="range" min="${min}" max="${max}" step="${step}" value="${val}">`;
@@ -219,7 +226,7 @@ function slider(lbl,min,max,step,val,fv,on){const f=document.createElement('labe
 function options(lbl,opts,cur,on,cls=''){const f=document.createElement('div');f.className='field';f.innerHTML=`<span class="lab"><span>${lbl}</span></span>`;
   const s=document.createElement('div');s.className='opts '+cls;opts.forEach(([v,t,img])=>{const b=document.createElement('button');b.type='button';b.innerHTML=(img?`<img src="${img}" alt="">`:'')+t;b.setAttribute('aria-pressed',v===cur);b.onclick=()=>{on(v);buildSel();render()};s.append(b)});f.append(s);return f}
 function buildSel(){
-  $('selEmpty').hidden=!!sel;$('selBox').hidden=!sel;if(!sel)return;const it=sel,p=P[it.id],c=$('selControls');
+  $('selEmpty').hidden=!!sel;$('selBox').hidden=!sel;$('mAdjust').hidden=!sel;if(!sel){sheet(false);return}const it=sel,p=P[it.id],c=$('selControls');
   $('selName').textContent=p.name;$('selImg').src='img/cat/'+p.thumb+'.jpg';$('selCat').href='catalogo.html#q='+encodeURIComponent(p.q);
   $('selWa').href=waLink(`Hola! Quiero consultar precio mayorista de: ${p.name}${it.type==='guirnalda'?` (${it.m} m)`:''}${it.type==='bajo'?` (${it.len} cm)`:''}${it.type==='plafon'?` (${it.size} cm)`:''}.`);
   c.innerHTML='';
@@ -247,7 +254,7 @@ function buildInfo(){
   el.textContent=T[sel.type]||(p.approx?'Medida aproximada. Si sabés cuánto mide el lugar, usá Medir para que la escala sea exacta.':'');
 }
 $('dup').onclick=()=>{const c=JSON.parse(JSON.stringify(sel)),d=cm(25,sel);if(c.type==='guirnalda'){c.p1[1]+=d;c.p2[1]+=d}else c.x+=d;items.push(c);select(c)};
-$('del').onclick=()=>{items=items.filter(i=>i!==sel);sel=null;buildSel();render()};
+$('del').onclick=()=>{items=items.filter(i=>i!==sel);sel=null;buildSel();render();sheet(false)};
 
 /* ---------- interacción ---------- */
 function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]}
@@ -270,14 +277,14 @@ cv.addEventListener('pointermove',e=>{if(!drag)return;const p=pos(e);
 const end=()=>{drag=null;cv.style.cursor='grab'};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
 
 /* ---------- foto ---------- */
-function fit(){if(!photo)return;const st=$('stage'),cs=getComputedStyle(st),mob=matchMedia('(max-width:900px)').matches;
-  const aw=st.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),ah=mob?Infinity:st.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+function fit(){if(!photo)return;const st=$('stage'),cs=getComputedStyle(st);
+  const aw=st.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),ah=st.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
   const s=Math.min(aw/cv.width,ah/cv.height),w=Math.floor(cv.width*s)+'px',h=Math.floor(cv.height*s)+'px';if(cv.style.width===w&&cv.style.height===h&&fit.done===photo)return;fit.done=photo;cv.style.width=w;cv.style.height=h;render()}
 function setPhoto(img){track('foto_subida');const max=2000,s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
   cv.width=Math.round(img.naturalWidth*s);cv.height=Math.round(img.naturalHeight*s);
   // Se achica una sola vez: las fotos del celular (12 MP) son lentas de redibujar en cada movimiento
   const pc=document.createElement('canvas');pc.width=cv.width;pc.height=cv.height;pc.getContext('2d').drawImage(img,0,0,pc.width,pc.height);photo=pc;calibrated=false;pxPerCm=cv.width/400;items=[];sel=null;
-  $('empty').hidden=true;cv.hidden=false;$('tools').hidden=false;$('hint').hidden=false;$('export').disabled=false;
+  $('empty').hidden=true;cv.hidden=false;$('tools').hidden=false;$('hint').hidden=false;$('mbar').hidden=false;$('export').disabled=false;
   scaleNote();buildSel();fit()}
 function readFile(f){if(!f||(f.type&&!f.type.startsWith('image/')))return;const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{setPhoto(i);URL.revokeObjectURL(u)};i.onerror=()=>{URL.revokeObjectURL(u);toast('No se pudo abrir esa foto. Probá con otra.')};i.src=u}
 $('file').onchange=$('file2').onchange=e=>{readFile(e.target.files[0]);e.target.value=''};
@@ -290,8 +297,8 @@ window.addEventListener('resize',fit);
 document.querySelectorAll('#tools .seg button').forEach(b=>b.onclick=()=>{night=+b.dataset.n;track('cambio_hora',{modo:b.textContent.trim()});document.querySelectorAll('#tools .seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
 function scaleNote(){$('scaleNote').textContent=calibrated?`Escala marcada: 1 m equivale a ${Math.round(pxPerCm*100)} px de la foto. Los productos están a medida real en ese plano.`:'Los productos se dibujan con su medida real. Para que la escala sea exacta, tocá Medir y marcá algo que conozcas, como una puerta (200 cm).'}
 scaleNote();
-$('calBtn').onclick=()=>{calMode=true;calLine=null;$('calBox').hidden=false;$('calOk').disabled=true;$('calBox').scrollIntoView({behavior:'smooth',block:'nearest'})};
-function calEnd(){calMode=false;calLine=null;$('calBox').hidden=true;render()}
+$('calBtn').onclick=()=>{if(calMode)return calEnd();calMode=true;calLine=null;sheet(false);$('calBox').hidden=false;$('calOk').disabled=true;$('calBtn').setAttribute('aria-pressed','true')};
+function calEnd(){calMode=false;calLine=null;$('calBox').hidden=true;$('calBtn').setAttribute('aria-pressed','false');render()}
 $('calCancel').onclick=calEnd;
 $('calOk').onclick=()=>{track('medida_aplicada');const v=+$('calCm').value;if(calLine&&v>0){const old=pxPerCm;pxPerCm=Math.hypot(calLine[1][0]-calLine[0][0],calLine[1][1]-calLine[0][1])/v;calibrated=true;
   items.forEach(it=>{if(it.type==='guirnalda')it.sag*=pxPerCm/old});scaleNote();buildSel();toast('Medida aplicada')}calEnd()};
@@ -315,7 +322,7 @@ $('export').onclick=()=>{
     g.fillStyle='#9cc7ea';g.font=f(600,band*.12);g.fillText('CONSULTÁ EN',x,H+band*.25);
     g.fillStyle='#fff';g.font=`700 ${Math.round(band*.24)}px "Barlow Semi Condensed",Barlow,system-ui,sans-serif`;g.fillText(shop||phone,x,H+band*.5,W*.38);
     if(shop&&phone){g.fillStyle='#dbe7f2';g.font=f(500,band*.16);g.fillText(phone,x,H+band*.76)}}
-  const url=c.toDataURL('image/jpeg',.92);$('resImg').src=url;$('resDl').href=url;$('result').hidden=false};
+  const url=c.toDataURL('image/jpeg',.92);$('resImg').src=url;$('resDl').href=url;$('result').hidden=false;sheet(false)};
 $('resClose').onclick=()=>$('result').hidden=true;
 
 let tt;function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2200)}
@@ -324,6 +331,6 @@ let tt;function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;cl
 function buildCat(){const cat=$('cat');$('count').textContent=PRODUCTS.length+' productos';let sec='';
   PRODUCTS.forEach(p=>{if(p.sec!==sec){sec=p.sec;const h=document.createElement('h2');h.textContent=sec;cat.append(h)}
     const b=document.createElement('button');b.type='button';b.className='prod';b.setAttribute('aria-label','Agregar '+p.name);
-    b.innerHTML=`<img src="img/cat/${p.thumb}.jpg" alt="" loading="lazy" width="64" height="64"><span><b>${p.name}</b><small>${p.spec}</small></span>`;b.onclick=()=>addProduct(p.id);cat.append(b)})}
+    b.innerHTML=`<img src="img/cat/${p.thumb}.jpg" alt="" loading="lazy" width="64" height="64"><span><b>${p.name}</b><small>${p.spec}</small><i class="sn">${SHORT[p.id]||p.name}</i></span>`;b.onclick=()=>addProduct(p.id);cat.append(b)})}
 buildCat();loadImgs().then(render);
 })();
