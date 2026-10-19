@@ -2,6 +2,8 @@
    y exporta una imagen con SUS datos (sin marca de la distribuidora). Todo corre en el navegador. */
 (()=>{
 const $=id=>document.getElementById(id);
+// iPhone con iOS 15 no tiene roundRect en el lienzo
+if(!CanvasRenderingContext2D.prototype.roundRect)CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.max(0,Math.min(+r||0,Math.abs(w)/2,Math.abs(h)/2));this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath()};
 const IMGS=['portalampara','gota','gota-on','g125-ambar','g125-ambar-on','globo-claro','globo-claro-on','pera-clara','pera-clara-on','bulbo-claro','bulbo-claro-on',
   'aplique-cuadrado','aplique-arco','aplique-piramidal','aplique-caja','tortuga','tortuga-on','proyector-sensor','proyector-sensor-on'];
 const IM={};
@@ -137,17 +139,19 @@ function emitPass(g){if(night<=0)return;items.forEach(it=>{
   else if(it.type==='photo'){const p=P[it.id];if(p.on&&IM[p.on]){const b=photoBox(it);g.save();g.globalAlpha=night;g.drawImage(IM[p.on],b.x,b.y,b.w,b.h);g.restore()}}
 })}
 /* Haz de luz en forma de cono (hacia abajo): cae con la distancia y se apaga hacia los costados, sin bordes duros */
-const cone=document.createElement('canvas'),cg=cone.getContext('2d');
+/* Se dibuja en un lienzo chico (S px) y se estira al tamaño real: es un degradé suave, así que no pierde calidad,
+   y evita lienzos gigantes que el iPhone no soporta (límite de ~16 millones de píxeles por lienzo). */
+const cone=document.createElement('canvas'),cg=cone.getContext('2d'),CS=256;cone.width=2*CS;cone.height=CS;
 function coneImg(e,k){
-  const R=Math.ceil(e.r),[r,gg,b]=e.c,h=Math.min(1.35,(e.cw||.36)*.95),col=a=>`rgba(${r},${gg},${b},${a})`;
-  cone.width=2*R;cone.height=R;cg.globalCompositeOperation='source-over';cg.clearRect(0,0,2*R,R);
+  const R=CS,[r,gg,b]=e.c,h=Math.min(1.35,(e.cw||.36)*.95),col=a=>`rgba(${r},${gg},${b},${a})`;
+  cg.globalCompositeOperation='source-over';cg.clearRect(0,0,2*R,R);
   const gr=cg.createRadialGradient(R,0,0,R,0,R);[[0,1],[.08,.8],[.22,.5],[.45,.22],[.7,.07],[1,0]].forEach(([t,v])=>gr.addColorStop(t,col((k*v).toFixed(3))));
   cg.fillStyle=gr;cg.fillRect(0,0,2*R,R);
   cg.globalCompositeOperation='destination-in';
   if(cg.createConicGradient){const f=h/(2*Math.PI),m=cg.createConicGradient(0,R,0);
-    [[0,0],[.25-f,0],[.25-f*.6,.45],[.25-f*.25,.9],[.25,1],[.25+f*.25,.9],[.25+f*.6,.45],[.25+f,0],[1,0]].forEach(([t,v])=>m.addColorStop(Math.min(1,Math.max(0,t)),`rgba(0,0,0,${v})`));cg.fillStyle=m}
-  else{const m=cg.createLinearGradient(0,0,2*R,0),w=Math.sin(h)*.5;m.addColorStop(0,'rgba(0,0,0,0)');m.addColorStop(Math.max(0,.5-w),'rgba(0,0,0,0)');m.addColorStop(.5,'#000');m.addColorStop(Math.min(1,.5+w),'rgba(0,0,0,0)');m.addColorStop(1,'rgba(0,0,0,0)');cg.fillStyle=m}
-  cg.fillRect(0,0,2*R,R);return cone;
+    [[0,0],[.25-f,0],[.25-f*.6,.45],[.25-f*.25,.9],[.25,1],[.25+f*.25,.9],[.25+f*.6,.45],[.25+f,0],[1,0]].forEach(([t,v])=>m.addColorStop(Math.min(1,Math.max(0,t)),`rgba(0,0,0,${v})`));cg.fillStyle=m;cg.fillRect(0,0,2*R,R)}
+  else{const w=Math.tan(h);cg.fillStyle='#000';cg.beginPath();cg.moveTo(R,0);cg.lineTo(R-w*R,R);cg.lineTo(R+w*R,R);cg.closePath();cg.filter='blur(12px)';cg.fill();cg.filter='none'}
+  return cone;
 }
 function lightPass(g,W,H){
   if(night<=0)return;
@@ -158,7 +162,7 @@ function lightPass(g,W,H){
   items.forEach(it=>emitters(it).forEach(e=>{
     const k=night*e.i,[r,gg,b]=e.c;
     if(e.cone!==undefined){
-      lg.save();lg.translate(e.x,e.y);lg.rotate(e.cone);lg.drawImage(coneImg(e,k),-e.r,0);lg.restore();
+      lg.save();lg.translate(e.x,e.y);lg.rotate(e.cone);lg.drawImage(coneImg(e,k),-e.r,0,2*e.r,e.r);lg.restore();
     }else{
       const gr=lg.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r);[[0,1],[.06,.86],[.14,.62],[.26,.4],[.42,.22],[.62,.09],[.82,.025],[1,0]].forEach(([t,v])=>gr.addColorStop(t,`rgba(${r},${gg},${b},${(k*v).toFixed(3)})`));
       lg.fillStyle=gr;lg.beginPath();lg.arc(e.x,e.y,e.r,0,7);lg.fill();
@@ -268,13 +272,15 @@ const end=()=>{drag=null;cv.style.cursor='grab'};cv.addEventListener('pointerup'
 /* ---------- foto ---------- */
 function fit(){if(!photo)return;const st=$('stage'),cs=getComputedStyle(st),mob=matchMedia('(max-width:900px)').matches;
   const aw=st.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),ah=mob?Infinity:st.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
-  const s=Math.min(aw/cv.width,ah/cv.height);cv.style.width=Math.floor(cv.width*s)+'px';cv.style.height=Math.floor(cv.height*s)+'px';render()}
+  const s=Math.min(aw/cv.width,ah/cv.height),w=Math.floor(cv.width*s)+'px',h=Math.floor(cv.height*s)+'px';if(cv.style.width===w&&cv.style.height===h&&fit.done===photo)return;fit.done=photo;cv.style.width=w;cv.style.height=h;render()}
 function setPhoto(img){track('foto_subida');const max=2000,s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
-  cv.width=Math.round(img.naturalWidth*s);cv.height=Math.round(img.naturalHeight*s);photo=img;calibrated=false;pxPerCm=cv.width/400;items=[];sel=null;
+  cv.width=Math.round(img.naturalWidth*s);cv.height=Math.round(img.naturalHeight*s);
+  // Se achica una sola vez: las fotos del celular (12 MP) son lentas de redibujar en cada movimiento
+  const pc=document.createElement('canvas');pc.width=cv.width;pc.height=cv.height;pc.getContext('2d').drawImage(img,0,0,pc.width,pc.height);photo=pc;calibrated=false;pxPerCm=cv.width/400;items=[];sel=null;
   $('empty').hidden=true;cv.hidden=false;$('tools').hidden=false;$('hint').hidden=false;$('export').disabled=false;
   scaleNote();buildSel();fit()}
-function readFile(f){if(!f||!f.type.startsWith('image/'))return;const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>setPhoto(i);i.src=r.result};r.readAsDataURL(f)}
-$('file').onchange=e=>readFile(e.target.files[0]);$('file2').onchange=e=>readFile(e.target.files[0]);
+function readFile(f){if(!f||(f.type&&!f.type.startsWith('image/')))return;const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{setPhoto(i);URL.revokeObjectURL(u)};i.onerror=()=>{URL.revokeObjectURL(u);toast('No se pudo abrir esa foto. Probá con otra.')};i.src=u}
+$('file').onchange=$('file2').onchange=e=>{readFile(e.target.files[0]);e.target.value=''};
 const em=$('empty');['dragenter','dragover'].forEach(t=>$('stage').addEventListener(t,e=>{e.preventDefault();em.classList.add('over')}));
 ['dragleave','drop'].forEach(t=>$('stage').addEventListener(t,e=>{e.preventDefault();em.classList.remove('over')}));
 $('stage').addEventListener('drop',e=>readFile(e.dataTransfer.files[0]));

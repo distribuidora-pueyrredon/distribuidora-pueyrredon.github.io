@@ -70,3 +70,4 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.005em;margin:0;text-wrap:ba
 }
 @media (max-width:380px){.nav a{padding:8px 6px}.logo img{height:26px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none}
