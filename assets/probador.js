@@ -22,6 +22,9 @@ const PRODUCTS=[
   {sec:'Techo',id:'plafonr',type:'plafon',shape:'round',name:'Plafón LED redondo',spec:'Sobreponer o embutir · 12 a 30 cm',thumb:'il40',q:'artef. led red.'},
   {sec:'Techo',id:'plafonc',type:'plafon',shape:'square',name:'Plafón LED cuadrado',spec:'Sobreponer o embutir · 12 a 30 cm',thumb:'il39',q:'artef. led cuad.'},
   {sec:'Techo',id:'panel',type:'panel',name:'Panel LED',spec:'60 × 60 cm o 120 × 30 cm',thumb:'il42',q:'panel led'},
+  {sec:'Decoración',id:'neon',type:'neon',name:'Neón flex LED 12 V',spec:'Rollo de 5 m · 7 colores o RGB',thumb:'l4-9',q:'neón flex'},
+  {sec:'Techo',id:'extrachata',type:'bajo',slim:1,lens:[40,75,111,146,180],name:'Luminaria LED extrachata 220 V',spec:'40 a 180 cm · cálida, neutra o fría',thumb:'l4-14',q:'extrachata'},
+  {sec:'Techo',id:'spotgu10',type:'spot',d:11,rings:1,name:'Spot de embutir GU10 110 mm',spec:'Blanco, negro o platil',thumb:'l4-17',q:'spot de embutir GU10'},
   {sec:'Techo',id:'spot',type:'spot',name:'Spot LED de embutir',spec:'Redondo o cuadrado',thumb:'il46',q:'spot dicro led empotrado'},
   {sec:'Pared',id:'apcuad',type:'photo',img:'aplique-cuadrado',w:7,beams:[[.62,.02,'up'],[.62,.98,'down']],name:'Aplique bidireccional cuadrado',spec:'Exterior · luz arriba y abajo',thumb:'il51',q:'bidireccional cuadrado',approx:1},
   {sec:'Pared',id:'aparco',type:'photo',img:'aplique-arco',w:16,beams:[[.2,.9,'down'],[.5,.95,'down'],[.8,.9,'down'],[.2,.05,'up'],[.5,0,'up'],[.8,.05,'up']],narrow:1,name:'Aplique bidireccional 6 W',spec:'Exterior · 6 haces de luz',thumb:'il53',q:'bidireccional 6w',approx:1},
@@ -31,7 +34,7 @@ const PRODUCTS=[
   {sec:'Exterior',id:'reflector',type:'photo',img:'proyector-sensor',w:14,sizes:[['10 W',14],['30 W',19],['50 W',23]],flood:[.6,.33],on:'proyector-sensor-on',name:'Reflector LED con sensor',spec:'10, 30 y 50 W · negro',thumb:'il3',q:'con sensor',approx:1},
   {sec:'Cocina',id:'bajomesada',type:'bajo',name:'Listón LED bajo mesada',spec:'60, 90 y 120 cm · con tecla',thumb:'il64',q:'bajo mesada'},
 ];
-const SHORT={guirnalda:'Guirnalda',colgante:'Colgante',plafonr:'Plafón red.',plafonc:'Plafón cuad.',panel:'Panel',spot:'Spot',apcuad:'Aplique cuad.',aparco:'Aplique 6 W',appir:'Aplique pirám.',apcaja:'Aplique caja',tortuga:'Tortuga',reflector:'Reflector',bajomesada:'Bajo mesada'};
+const SHORT={neon:'Neón flex',extrachata:'Extrachata',spotgu10:'Spot GU10',guirnalda:'Guirnalda',colgante:'Colgante',plafonr:'Plafón red.',plafonc:'Plafón cuad.',panel:'Panel',spot:'Spot',apcuad:'Aplique cuad.',aparco:'Aplique 6 W',appir:'Aplique pirám.',apcaja:'Aplique caja',tortuga:'Tortuga',reflector:'Reflector',bajomesada:'Bajo mesada'};
 const P=Object.fromEntries(PRODUCTS.map(p=>[p.id,p]));
 const cv=$('cv'),cx=cv.getContext('2d');
 let photo=null,pxPerCm=4,calibrated=false,items=[],sel=null,night=.86,drag=null,calMode=false,calLine=null;
@@ -46,6 +49,11 @@ function curveLen(p){let L=0;for(let i=1;i<p.length;i++)L+=Math.hypot(p[i][0]-p[
 function atLen(p,d){let L=0;for(let i=1;i<p.length;i++){const s=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);if(L+s>=d){const f=(d-L)/s;return[p[i-1][0]+(p[i][0]-p[i-1][0])*f,p[i-1][1]+(p[i][1]-p[i-1][1])*f]}L+=s}return p[p.length-1]}
 const midPt=it=>[(it.p1[0]+it.p2[0])/2,(it.p1[1]+it.p2[1])/2+it.sag];
 const GUIR={6:{n:10,len:600},10:{n:20,len:1000}};
+const CURVE=t=>t==='guirnalda'||t==='neon';
+const NEON={calido:['Cálido',[255,168,70]],frio:['Frío',[205,228,255]],rojo:['Rojo',[255,40,40]],verde:['Verde',[40,255,100]],azul:['Azul',[50,110,255]],rosa:['Rosa',[255,70,185]],amarillo:['Amarillo',[255,214,40]],rgb:['RGB',null]};
+const hsl=(h)=>{const f=n=>{const k=(n+h/30)%12;return Math.round(255*(.5-.5*Math.max(-1,Math.min(k-3,9-k,1))))};return[f(0),f(8),f(4)]};
+function neonCol(it,t){const c=NEON[it.color][1];return c||hsl((t*300)%360)}
+function neonPts(it){const p=curvePts(it,160);return p}
 const SOCK_W=3.8;
 
 /* Lámparas colgantes (guirnalda y colgante): posición, foto apagada y prendida */
@@ -61,8 +69,9 @@ function emitters(it){
   const t=TONES[it.tone]||TONES.calida;
   if(it.type==='guirnalda'||it.type==='colgante'){const big=it.type==='colgante'?1:0;return bulbsOf(it).map(b=>({x:b.gx,y:b.gy,c:b.c,r:cm(big?160:95,it),i:big?.95:.85,core:cm(big?6:3.6,it)}))}
   if(it.type==='plafon'||it.type==='panel'||it.type==='spot'){const d=dimsOf(it),s=Math.max(d.w,d.h);return[{x:it.x,y:it.y+d.h*.25,c:t,r:Math.max(cm(140,it),s*5.5),i:1,core:s*.45}]}
-  if(it.type==='bajo'){const n=Math.max(3,Math.round(it.len/20)),w=cm(it.len,it),a=rad(it.rot),o=[];
-    for(let i=0;i<n;i++){const f=(i+.5)/n-.5;o.push({x:it.x+Math.cos(a)*w*f,y:it.y+Math.sin(a)*w*f,c:TONES.neutra,r:cm(70,it),i:.9,core:cm(2.2,it),cone:a,cw:.75})}return o}
+  if(it.type==='neon'){const p=neonPts(it),L=curveLen(p),n=Math.max(4,Math.round(L/cm(28,it))),o=[];for(let i=0;i<=n;i++){const [x,y]=atLen(p,L*i/n);o.push({x,y,c:neonCol(it,i/n),r:cm(60,it),i:.5,core:cm(1.3,it)})}return o}
+  if(it.type==='bajo'){const sl=P[it.id].slim,n=Math.max(3,Math.round(it.len/20)),w=cm(it.len,it),a=rad(it.rot),o=[];
+    for(let i=0;i<n;i++){const f=(i+.5)/n-.5;o.push({x:it.x+Math.cos(a)*w*f,y:it.y+Math.sin(a)*w*f,c:TONES[it.tone]||TONES.neutra,r:cm(sl?120:70,it),i:.9,core:cm(2.2,it),cone:a,cw:sl?1.15:.75})}return o}
   if(it.type==='photo'){const p=P[it.id],b=photoBox(it),o=[];
     (p.beams||[]).forEach(([fx,fy,dir])=>o.push({x:b.x+b.w*fx,y:b.y+b.h*fy,c:t,r:cm(p.narrow?70:95,it),i:1,core:cm(1.4,it),cone:dir==='up'?Math.PI:0,cw:p.wide?.7:(p.narrow?.26:.34)}));
     if(p.glow)o.push({x:b.x+b.w*p.glow[0],y:b.y+b.h*p.glow[1],c:t,r:cm(170,it),i:.95,core:b.w*.35});
@@ -74,7 +83,7 @@ function photoBox(it){const p=P[it.id],img=IM[p.img],w=cm(it.size||p.w,it),h=w*i
 function dimsOf(it){
   if(it.type==='plafon'){const s=cm(it.size,it);return{w:s,h:s*Math.cos(rad(it.tilt)),depth:it.mount==='sob'?cm(3.5,it):cm(.5,it)}}
   if(it.type==='panel'){const [a,b]=it.size==='120x30'?[120,30]:[60,60];return{w:cm(a,it),h:cm(b,it)*Math.cos(rad(it.tilt)),pw:cm(a,it),ph:cm(b,it),depth:cm(.9,it)}}
-  if(it.type==='spot'){const s=cm(9,it);return{w:s,h:s*Math.cos(rad(it.tilt)),depth:cm(.6,it)}}
+  if(it.type==='spot'){const s=cm(P[it.id].d||9,it);return{w:s,h:s*Math.cos(rad(it.tilt)),depth:cm(.6,it)}}
   return{w:0,h:0,depth:0};
 }
 
@@ -91,7 +100,7 @@ function drawFlat(g,it,lit){
   let w,h,shape,rr;
   if(it.type==='plafon'){w=h=cm(it.size,it);shape=it.shape;rr=w*.06}
   else if(it.type==='panel'){const d=dimsOf(it);w=d.pw;h=d.ph;shape='square';rr=cm(.6,it)}
-  else{w=h=cm(9,it);shape=it.shape;rr=w*.08}
+  else{w=h=cm(P[it.id].d||9,it);shape=it.shape;rr=w*.08}
   if(lit){ // difusor prendido
     g.save();g.globalAlpha=night;plane(g,it,()=>{const inset=it.type==='panel'?cm(1.4,it):(it.type==='spot'?w*.2:w*.05);
       const gr=g.createRadialGradient(0,0,0,0,0,Math.max(w,h)*.6);gr.addColorStop(0,'rgb(255,255,252)');gr.addColorStop(.7,`rgb(${t.map(v=>Math.min(255,v+30))})`);gr.addColorStop(1,`rgb(${t})`);
@@ -102,7 +111,8 @@ function drawFlat(g,it,lit){
   else{shadowOn(g,it,.4)}
   plane(g,it,()=>{
     // marco
-    const fr=g.createLinearGradient(0,-h/2,0,h/2);fr.addColorStop(0,'#f4f5f6');fr.addColorStop(1,'#d9dcdf');g.fillStyle=fr;shapePath(g,shape,w,h,rr);g.fill();shadowOff(g);
+    const RC={blanco:['#f4f5f6','#d9dcdf'],negro:['#3a3c40','#121315'],platil:['#f2f3f4','#9da2a8']}[it.ring||'blanco'];
+    const fr=g.createLinearGradient(0,-h/2,0,h/2);fr.addColorStop(0,RC[0]);fr.addColorStop(1,RC[1]);g.fillStyle=fr;shapePath(g,shape,w,h,rr);g.fill();shadowOff(g);
     // difusor apagado
     const inset=it.type==='panel'?cm(1.4,it):(it.type==='spot'?w*.2:w*.05);
     const df=g.createLinearGradient(-w/2,-h/2,w/2,h/2);df.addColorStop(0,'#fbfbfa');df.addColorStop(1,'#e6e7e6');g.fillStyle=df;shapePath(g,shape,w-inset*2,h-inset*2,rr*.6);g.fill();
@@ -112,7 +122,12 @@ function drawFlat(g,it,lit){
 }
 function drawBajo(g,it,lit){
   const w=cm(it.len,it),h=Math.max(3,cm(2.2,it));g.save();g.translate(it.x,it.y);g.rotate(rad(it.rot));
-  if(lit){g.globalAlpha=night;const t=TONES.neutra;g.fillStyle=`rgb(${t})`;g.beginPath();g.roundRect(-w/2+h*.3,h*.18,w-h*.6,h*.3,h*.15);g.fill();g.restore();return}
+  const sl=P[it.id].slim;
+  if(sl){const hh=Math.max(3,cm(2.6,it));
+    if(lit){g.globalAlpha=night;const t=TONES[it.tone]||TONES.neutra;g.fillStyle=`rgb(${t.map(v=>Math.min(255,v+25))})`;g.beginPath();g.roundRect(-w/2+hh*.25,-hh*.32,w-hh*.5,hh*.64,hh*.3);g.fill();g.restore();return}
+    shadowOn(g,it,.5);const gr=g.createLinearGradient(0,-hh/2,0,hh/2);gr.addColorStop(0,'#fdfdfc');gr.addColorStop(1,'#d7dadd');g.fillStyle=gr;g.beginPath();g.roundRect(-w/2,-hh/2,w,hh,hh*.45);g.fill();shadowOff(g);
+    g.fillStyle='#f3f3f1';g.beginPath();g.roundRect(-w/2+hh*.25,-hh*.32,w-hh*.5,hh*.64,hh*.3);g.fill();g.fillStyle='#c9cdd1';g.fillRect(-w/2+hh*.1,-hh*.5,Math.max(1,hh*.12),hh);g.fillRect(w/2-hh*.22,-hh*.5,Math.max(1,hh*.12),hh);g.restore();return}
+  if(lit){g.globalAlpha=night;const t=TONES[it.tone]||TONES.neutra;g.fillStyle=`rgb(${t})`;g.beginPath();g.roundRect(-w/2+h*.3,h*.18,w-h*.6,h*.3,h*.15);g.fill();g.restore();return}
   shadowOn(g,it,.6);const gr=g.createLinearGradient(0,-h/2,0,h/2);gr.addColorStop(0,'#eceef0');gr.addColorStop(.5,'#c9cdd2');gr.addColorStop(1,'#9fa4aa');
   g.fillStyle=gr;g.beginPath();g.roundRect(-w/2,-h/2,w,h,h*.25);g.fill();shadowOff(g);
   g.fillStyle='#f6f6f4';g.beginPath();g.roundRect(-w/2+h*.3,h*.18,w-h*.6,h*.3,h*.15);g.fill();
@@ -122,7 +137,10 @@ function drawBajo(g,it,lit){
 }
 function drawBody(g,it){
   g.save();
-  if(it.type==='guirnalda'){const p=curvePts(it),bs=bulbsOf(it);shadowOn(g,it,1.6);cable(g,p,it);bs.forEach(b=>{bulb(g,b.img,b.x,b.y,b.w,1);const s=b.sock;g.drawImage(IM.portalampara,s[0]-s[2]/2,s[1],s[2],s[3])})}
+  if(it.type==='neon'){const p=neonPts(it),wd=Math.max(2,cm(1.2,it));g.lineCap='round';g.lineJoin='round';shadowOn(g,it,.6);
+    for(let i=1;i<p.length;i++){const c=neonCol(it,i/p.length).map(v=>Math.round(v*.35+255*.65));g.strokeStyle=`rgb(${c})`;g.lineWidth=wd;g.beginPath();g.moveTo(...p[i-1]);g.lineTo(...p[i]);g.stroke();if(i===1)shadowOff(g)}
+    g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=wd*.3;g.beginPath();p.forEach((q,i)=>i?g.lineTo(q[0],q[1]-wd*.18):g.moveTo(q[0],q[1]-wd*.18));g.stroke()}
+  else if(it.type==='guirnalda'){const p=curvePts(it),bs=bulbsOf(it);shadowOn(g,it,1.6);cable(g,p,it);bs.forEach(b=>{bulb(g,b.img,b.x,b.y,b.w,1);const s=b.sock;g.drawImage(IM.portalampara,s[0]-s[2]/2,s[1],s[2],s[3])})}
   else if(it.type==='colgante'){const b=bulbsOf(it)[0],s=b.sock,fw=cm(9,it),fh=cm(1.6,it),x=it.x,y=it.y;shadowOn(g,it,1.2);
     const gr=g.createLinearGradient(x-fw/2,0,x+fw/2,0);gr.addColorStop(0,'#18181a');gr.addColorStop(.4,'#3a3a3d');gr.addColorStop(1,'#121213');
     g.fillStyle=gr;g.beginPath();g.moveTo(x-fw/2,y);g.lineTo(x+fw/2,y);g.bezierCurveTo(x+fw/2,y+fh*.9,x+fw*.2,y+fh,x,y+fh);g.bezierCurveTo(x-fw*.2,y+fh,x-fw/2,y+fh*.9,x-fw/2,y);g.fill();
@@ -137,6 +155,8 @@ function emitPass(g){if(night<=0)return;items.forEach(it=>{
   if(it.type==='guirnalda'||it.type==='colgante'){g.save();g.globalAlpha=night;bulbsOf(it).forEach(b=>bulb(g,b.lit,b.x,b.y,b.w,1));g.restore()}
   else if(it.type==='plafon'||it.type==='panel'||it.type==='spot')drawFlat(g,it,true);
   else if(it.type==='bajo')drawBajo(g,it,true);
+  else if(it.type==='neon'){const p=neonPts(it),wd=Math.max(2,cm(1.2,it));g.save();g.lineCap='round';g.globalAlpha=night;
+    [[wd*3.2,.18],[wd*1.6,.45],[wd*.95,1]].forEach(([lw,a],j)=>{for(let i=1;i<p.length;i++){const c=neonCol(it,i/p.length).map(v=>j===2?Math.round(v*.55+255*.45):v);g.strokeStyle=`rgba(${c},${a})`;g.lineWidth=lw;g.beginPath();g.moveTo(...p[i-1]);g.lineTo(...p[i]);g.stroke()}});g.restore()}
   else if(it.type==='photo'){const p=P[it.id];if(p.on&&IM[p.on]){const b=photoBox(it);g.save();g.globalAlpha=night;g.drawImage(IM[p.on],b.x,b.y,b.w,b.h);g.restore()}}
 })}
 /* Haz de luz en forma de cono (hacia abajo): cae con la distancia y se apaga hacia los costados, sin bordes duros */
@@ -187,7 +207,7 @@ const R=()=>cv.width/Math.max(1,cv.getBoundingClientRect().width);
 function handle(g,x,y){const r=8*R();g.fillStyle='#fff';g.strokeStyle='#06518b';g.lineWidth=3*R();g.beginPath();g.arc(x,y,r,0,7);g.fill();g.stroke()}
 function drawHandles(g){
   if(!sel)return;g.save();
-  if(sel.type==='guirnalda'){g.setLineDash([5*R(),5*R()]);g.strokeStyle='rgba(120,180,255,.9)';g.lineWidth=1.5*R();g.beginPath();g.moveTo(...sel.p1);g.lineTo(...sel.p2);g.stroke();g.setLineDash([]);handle(g,...sel.p1);handle(g,...sel.p2);handle(g,...midPt(sel))}
+  if(CURVE(sel.type)){g.setLineDash([5*R(),5*R()]);g.strokeStyle='rgba(120,180,255,.9)';g.lineWidth=1.5*R();g.beginPath();g.moveTo(...sel.p1);g.lineTo(...sel.p2);g.stroke();g.setLineDash([]);handle(g,...sel.p1);handle(g,...sel.p2);handle(g,...midPt(sel))}
   else{const b=bbox(sel),pad=6*R();g.strokeStyle='#5aa9ff';g.lineWidth=1.5*R();g.strokeRect(b[0]-pad,b[1]-pad,b[2]-b[0]+pad*2,b[3]-b[1]+pad*2)}
   g.restore();
 }
@@ -208,7 +228,9 @@ function newItem(id){
   if(p.type==='plafon')return{...b,shape:p.shape,size:22,mount:'sob',tilt:62,rot:0,x:W/2,y:H*.22,tone:'neutra'};
   if(p.type==='panel')return{...b,size:'60x60',tilt:62,rot:0,x:W/2,y:H*.2,tone:'neutra'};
   if(p.type==='spot')return{...b,shape:'round',tilt:62,x:W/2,y:H*.2};
-  if(p.type==='bajo')return{...b,len:60,rot:0,x:W/2,y:H*.4};
+  if(p.type==='neon'){const span=Math.min(W*.7,cm(300));return{...b,color:'calido',p1:[W/2-span/2,H*.3],p2:[W/2+span/2,H*.3],sag:cm(12)}}
+  if(p.type==='bajo')return{...b,len:p.lens?p.lens[1]:60,rot:0,x:W/2,y:H*(p.slim?.2:.4),tone:p.slim?'neutra':'neutra'};
+  if(p.type==='spot'&&p.rings)return{...b,shape:'round',ring:'blanco',tilt:62,x:W/2,y:H*.2};
   return{...b,size:p.w,x:W/2,y:H*.4};
 }
 function addProduct(id){if(!photo){toast('Primero subí una foto del lugar');return}const it=newItem(id);items.push(it);select(it);track('producto_agregado',{producto:id})}
@@ -228,15 +250,18 @@ function options(lbl,opts,cur,on,cls=''){const f=document.createElement('div');f
 function buildSel(){
   $('selEmpty').hidden=!!sel;$('selBox').hidden=!sel;$('mAdjust').hidden=!sel;if(!sel){sheet(false);return}const it=sel,p=P[it.id],c=$('selControls');
   $('selName').textContent=p.name;$('selImg').src='img/cat/'+p.thumb+'.jpg';$('selCat').href='catalogo.html#q='+encodeURIComponent(p.q);
-  $('selWa').href=waLink(`Hola! Quiero consultar precio mayorista de: ${p.name}${it.type==='guirnalda'?` (${it.m} m)`:''}${it.type==='bajo'?` (${it.len} cm)`:''}${it.type==='plafon'?` (${it.size} cm)`:''}.`);
+  $('selWa').href=waLink(`Hola! Quiero consultar precio mayorista de: ${p.name}${it.type==='guirnalda'?` (${it.m} m)`:''}${it.type==='bajo'?` (${it.len} cm)`:''}${it.type==='plafon'?` (${it.size} cm)`:''}${it.type==='neon'?` (${NEON[it.color][0].toLowerCase()})`:''}${p.rings?` (${it.ring})`:''}.`);
   c.innerHTML='';
   if(it.type==='guirnalda')c.append(options('Largo',[[6,'6 m · 10 lámparas'],[10,'10 m · 20 lámparas']],it.m,v=>it.m=v));
   if(it.type==='colgante'){c.append(options('Lámpara',Object.entries(BULBS).map(([k,b])=>[k,b.name.split(' ')[0],'img/prob/'+b.img+'.png']),it.bulb,v=>it.bulb=v,'bulbs'));c.append(slider('Largo del cable',10,150,5,it.cable,v=>v+' cm',v=>it.cable=v))}
   if(it.type==='plafon'){c.append(options('Medida',[[12,'12 cm'],[17,'17 cm'],[22,'22 cm'],[30,'30 cm']],it.size,v=>it.size=v));c.append(options('Colocación',[['sob','Sobreponer'],['emb','Embutir']],it.mount,v=>it.mount=v))}
   if(it.type==='panel')c.append(options('Medida',[['60x60','60 × 60 cm'],['120x30','120 × 30 cm']],it.size,v=>it.size=v));
-  if(it.type==='spot')c.append(options('Forma',[['round','Redondo'],['square','Cuadrado']],it.shape,v=>it.shape=v));
+  if(it.type==='spot'&&!p.rings)c.append(options('Forma',[['round','Redondo'],['square','Cuadrado']],it.shape,v=>it.shape=v));
   if(P[it.id].sizes)c.append(options('Potencia',P[it.id].sizes.map(([t,w])=>[w,t]),it.size,v=>it.size=v));
-  if(it.type==='bajo')c.append(options('Largo',[[60,'60 cm'],[90,'90 cm'],[120,'120 cm']],it.len,v=>it.len=v));
+  if(it.type==='bajo')c.append(options('Largo',(p.lens||[60,90,120]).map(v=>[v,v+' cm']),it.len,v=>it.len=v));
+  if(it.type==='bajo'&&p.slim)c.append(options('Luz',TONE_OPTS,it.tone,v=>it.tone=v));
+  if(it.type==='neon')c.append(options('Color',Object.entries(NEON).map(([k,v])=>[k,v[0]]),it.color,v=>it.color=v));
+  if(p.rings)c.append(options('Color del aro',[['blanco','Blanco'],['negro','Negro'],['platil','Platil']],it.ring,v=>it.ring=v));
   if(['plafon','panel','spot','photo'].includes(it.type)&&!(it.type==='photo'&&P[it.id].flood))c.append(options('Luz',TONE_OPTS,it.tone,v=>it.tone=v));
   if(it.id==='reflector')c.append(options('Luz',[['fria','Fría'],['calida','Cálida']],it.tone,v=>it.tone=v));
   if(['plafon','panel','spot'].includes(it.type))c.append(slider('Ángulo de vista',0,80,1,it.tilt,v=>v===0?'de frente':v+'°',v=>it.tilt=v));
@@ -250,10 +275,14 @@ function buildInfo(){
   if(sel.type==='guirnalda'){const g=GUIR[sel.m],len=curveLen(curvePts(sel))/(pxPerCm*sel.k),m=(len/100).toFixed(1).replace('.',',');
     if(len>g.len){el.className='note warn';el.textContent=`Así hacen falta unos ${m} m de cable y esta guirnalda mide ${sel.m} m. Acortá la caída o elegí la de 10 m.`}
     else el.textContent=`Usa unos ${m} m de los ${sel.m} m de cable. Se muestra con lámparas gota (se venden aparte).`;return}
-  const T={colgante:'Florón, cable y portalámpara E27 con la lámpara elegida.',plafon:'Los de sobreponer tienen unos 3,5 cm de alto. Ajustá el ángulo para que coincida con el techo de la foto.',panel:'Panel de embutir de 4 cm de espesor. Ajustá el ángulo y el giro para alinearlo con el techo.',spot:'Spot de embutir de unos 9 cm. Ajustá el ángulo para que coincida con el techo.',bajo:'Listón de luz neutra (4000 K) con tecla de encendido.'};
+  if(sel.type==='neon'){const len=curveLen(neonPts(sel))/(pxPerCm*sel.k),m=(len/100).toFixed(1).replace('.',','),r=Math.ceil(len/500);
+    if(r>1){el.className='note warn';el.textContent=`Así se usan unos ${m} m de neón: hacen falta ${r} rollos de 5 m (o consultá por bobina). Necesita fuente de 12 V.`}
+    else el.textContent=`Usa unos ${m} m del rollo de 5 m. Se corta cada 2,5 cm y necesita fuente de 12 V.`;return}
+  if(sel.type==='bajo'&&p.slim){el.textContent=`Extrachata de ${sel.len} cm, va directo a 220 V. Ideal bajo alacena o en placares.`;return}
+  const T={colgante:'Florón, cable y portalámpara E27 con la lámpara elegida.',plafon:'Los de sobreponer tienen unos 3,5 cm de alto. Ajustá el ángulo para que coincida con el techo de la foto.',panel:'Panel de embutir de 4 cm de espesor. Ajustá el ángulo y el giro para alinearlo con el techo.',spot:`Spot de embutir de unos ${p.d||9} cm. Ajustá el ángulo para que coincida con el techo.`,bajo:'Listón de luz neutra (4000 K) con tecla de encendido.'};
   el.textContent=T[sel.type]||(p.approx?'Medida aproximada. Si sabés cuánto mide el lugar, usá Medir para que la escala sea exacta.':'');
 }
-$('dup').onclick=()=>{const c=JSON.parse(JSON.stringify(sel)),d=cm(25,sel);if(c.type==='guirnalda'){c.p1[1]+=d;c.p2[1]+=d}else c.x+=d;items.push(c);select(c)};
+$('dup').onclick=()=>{const c=JSON.parse(JSON.stringify(sel)),d=cm(25,sel);if(CURVE(c.type)){c.p1[1]+=d;c.p2[1]+=d}else c.x+=d;items.push(c);select(c)};
 $('del').onclick=()=>{items=items.filter(i=>i!==sel);sel=null;buildSel();render();sheet(false)};
 
 /* ---------- interacción ---------- */
@@ -261,7 +290,7 @@ function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.
 const near=(p,q,r)=>Math.hypot(p[0]-q[0],p[1]-q[1])<r;
 function hit(p){const r=20*R();
   for(let i=items.length-1;i>=0;i--){const it=items[i];
-    if(it.type==='guirnalda'){if(near(p,it.p1,r))return{it,part:'p1'};if(near(p,it.p2,r))return{it,part:'p2'};if(near(p,midPt(it),r))return{it,part:'sag'};
+    if(CURVE(it.type)){if(near(p,it.p1,r))return{it,part:'p1'};if(near(p,it.p2,r))return{it,part:'p2'};if(near(p,midPt(it),r))return{it,part:'sag'};
       if(curvePts(it,80).some(q=>near(p,q,r)))return{it,part:'all'};if(bulbsOf(it).some(b=>near(p,[b.gx,b.gy],Math.max(r,cm(5,it)))))return{it,part:'all'}}
     else{const b=bbox(it),pad=10*R();if(p[0]>=b[0]-pad&&p[0]<=b[2]+pad&&p[1]>=b[1]-pad&&p[1]<=b[3]+pad)return{it,part:'all'}}}
   return null}
@@ -272,7 +301,7 @@ cv.addEventListener('pointerdown',e=>{const p=pos(e);cv.setPointerCapture(e.poin
 cv.addEventListener('pointermove',e=>{if(!drag)return;const p=pos(e);
   if(drag.cal){calLine[1]=p;$('calOk').disabled=Math.hypot(calLine[1][0]-calLine[0][0],calLine[1][1]-calLine[0][1])<10*R();render();return}
   const it=sel,o=drag.orig,dx=p[0]-drag.start[0],dy=p[1]-drag.start[1];
-  if(it.type==='guirnalda'){if(drag.part==='p1')it.p1=[o.p1[0]+dx,o.p1[1]+dy];else if(drag.part==='p2')it.p2=[o.p2[0]+dx,o.p2[1]+dy];else if(drag.part==='sag')it.sag=Math.max(0,o.sag+dy);else{it.p1=[o.p1[0]+dx,o.p1[1]+dy];it.p2=[o.p2[0]+dx,o.p2[1]+dy]}}
+  if(CURVE(it.type)){if(drag.part==='p1')it.p1=[o.p1[0]+dx,o.p1[1]+dy];else if(drag.part==='p2')it.p2=[o.p2[0]+dx,o.p2[1]+dy];else if(drag.part==='sag')it.sag=Math.max(0,o.sag+dy);else{it.p1=[o.p1[0]+dx,o.p1[1]+dy];it.p2=[o.p2[0]+dx,o.p2[1]+dy]}}
   else{it.x=o.x+dx;it.y=o.y+dy}render();buildInfo()});
 const end=()=>{drag=null;cv.style.cursor='grab'};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
 
@@ -301,7 +330,7 @@ $('calBtn').onclick=()=>{if(calMode)return calEnd();calMode=true;calLine=null;sh
 function calEnd(){calMode=false;calLine=null;$('calBox').hidden=true;$('calBtn').setAttribute('aria-pressed','false');render()}
 $('calCancel').onclick=calEnd;
 $('calOk').onclick=()=>{track('medida_aplicada');const v=+$('calCm').value;if(calLine&&v>0){const old=pxPerCm;pxPerCm=Math.hypot(calLine[1][0]-calLine[0][0],calLine[1][1]-calLine[0][1])/v;calibrated=true;
-  items.forEach(it=>{if(it.type==='guirnalda')it.sag*=pxPerCm/old});scaleNote();buildSel();toast('Medida aplicada')}calEnd()};
+  items.forEach(it=>{if(CURVE(it.type))it.sag*=pxPerCm/old});scaleNote();buildSel();toast('Medida aplicada')}calEnd()};
 
 /* ---------- imagen para el cliente (solo con los datos del comercio) ---------- */
 const shopEl=$('shop'),phoneEl=$('phone');
