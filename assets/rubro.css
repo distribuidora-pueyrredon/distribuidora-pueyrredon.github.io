@@ -1,0 +1,28 @@
+/* Páginas por rubro: todos los productos del rubro en texto, para buscadores y para mandar por link. */
+.rubpage{padding-top:20px}
+.miga{font-size:14px;color:var(--muted);margin-bottom:18px}
+.miga a{color:var(--muted);text-decoration:none}
+.miga a:hover{color:var(--blue);text-decoration:underline}
+.rub-head{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:28px;margin-bottom:20px;box-shadow:var(--shadow)}
+.rub-head .eyebrow{margin:0;font:600 13px/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.rub-head h1{font:700 clamp(30px,4.4vw,46px)/1.05 var(--display);color:var(--blue-900);margin:10px 0 12px}
+.rub-head p{color:var(--ink-2);max-width:64ch;margin:0 0 20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px}
+.rg{display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;align-items:start;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:12px}
+.rg.sin-foto{grid-template-columns:minmax(0,1fr)}
+.rg img{width:120px;height:120px;object-fit:contain;border-radius:8px}
+.rg h2{font:700 20px/1.2 var(--display);color:var(--blue-900);margin:0 0 8px}
+.rg ul{margin:0;padding:0;list-style:none;columns:2 260px;column-gap:28px}
+.rg li{break-inside:avoid;padding:5px 0;border-bottom:1px solid var(--line);color:var(--ink-2);font-size:15px}
+.rg li small{color:var(--faint);margin-left:4px}
+.otros{margin-top:36px}
+.otros h2{font:700 24px/1.2 var(--display);color:var(--blue-900);margin:0 0 12px}
+.otros div{display:flex;flex-wrap:wrap;gap:8px}
+.otros a{padding:8px 12px;border:1px solid var(--line-2);border-radius:999px;background:var(--white);text-decoration:none;color:var(--ink-2);font-weight:500;font-size:15px}
+.otros a:hover{border-color:var(--blue);color:var(--blue)}
+@media (max-width:620px){
+  .rub-head{padding:20px}
+  .hero-cta .btn{flex:1 1 100%}
+  .rg{grid-template-columns:72px minmax(0,1fr);gap:14px;padding:14px}
+  .rg img{width:72px;height:72px}
+}
