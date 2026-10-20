@@ -50,7 +50,8 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.005em;margin:0;text-wrap:ba
 
 /* Pie */
 .foot{background:var(--blue-900);color:#c9d6e4;margin-top:72px}
-.foot .wrap{padding-top:40px;padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:32px}
+.foot .wrap{padding-top:40px;padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:1.2fr 1fr 1fr 1.6fr;gap:32px}
+.foot-rubs a{display:inline-block;margin:0 14px 6px 0;font-size:14px;color:#c9d6e4}
 .foot img{height:34px;width:auto;margin-bottom:12px}
 .foot h4{margin:0 0 10px;font:600 13px/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:#fff}
 .foot a{color:#fff;text-decoration:none}

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://distribuidora-pueyrredon.github.io/sitemap.xml
