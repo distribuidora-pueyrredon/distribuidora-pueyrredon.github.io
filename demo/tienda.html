@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Catálogo · Mostrador</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%23111418%22/%3E%3Cpath d=%22M7 22V11l9 7 9-7v11%22 stroke=%22%23ffcc33%22 stroke-width=%223%22 fill=%22none%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<!-- Barra de demo: solo aparece en modo demostración -->
+<div class="demobar" id="demobar" hidden>
+  <span class="demo-tag">Demo</span>
+  <div class="demo-ex" id="demoEx" role="tablist" aria-label="Ejemplos"></div>
+  <button class="demo-fx" id="demoFx" type="button" aria-label="Funciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="fx-l">Funciones</span></button>
+</div>
+
+<!-- Vista: catálogo -->
+<div id="vCat">
+  <header class="st-head">
+    <div class="st-id">
+      <div class="st-logo" id="stLogo"></div>
+      <div class="st-txt"><h1 id="stName"></h1><p id="stSub"></p></div>
+    </div>
+    <div class="st-tags" id="stTags"></div>
+  </header>
+  <div class="st-tools" id="tools">
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar productos" autocomplete="off"></label>
+    <div class="cats" id="cats"></div>
+  </div>
+  <main class="grid" id="grid"></main>
+  <div class="empty" id="empty" hidden></div>
+  <footer class="st-foot">
+    <a class="qr-link" href="#qr" id="qrLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h3v-3"/></svg><span id="qrLinkTxt">Regalo para clientes</span></a>
+    <p>Hecho con <a href="./">Mostrador</a></p>
+  </footer>
+  <button class="cartbar" id="cartbar" type="button" hidden><span class="cb-n" id="cbN">0</span><span id="cbLbl">Ver mi pedido</span><b id="cbTot"></b></button>
+</div>
+
+<!-- Vista: regalo + reseña -->
+<div class="rv" id="vRes" hidden>
+  <div class="rv-in">
+    <div class="rv-logo" id="rvLogo"></div>
+    <p class="rv-ey">¡Gracias por elegirnos!</p>
+    <h1 class="rv-h" id="rvH">Tu regalo</h1>
+    <div class="tk" id="tk">
+      <div class="tk-top"><span id="tkName"></span><span class="tk-live"><i></i>Válido</span></div>
+      <p class="tk-pct"><b id="tkPct"></b><span>OFF</span></p>
+      <p class="tk-what" id="tkWhat"></p>
+      <div class="tk-code"><small>Tu código</small><b id="tkCode"></b></div>
+      <p class="tk-until" id="tkUntil"></p>
+    </div>
+    <p class="rv-fine">Mostrá esta pantalla o pasá el código al hacer tu pedido.</p>
+    <div class="gbox">
+      <p><b>¿Nos dejás tu reseña en Google Maps?</b> Ayuda a que más gente nos encuentre. Es opcional: el descuento ya es tuyo.</p>
+      <button class="b b-brand b-big" id="gBtn" type="button"><svg viewBox="0 0 24 24"><path fill="#fbbc04" d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg>Dejar mi reseña en Google</button>
+    </div>
+    <button class="b b-wa b-big" id="rvOrder" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9.5c.4 2 1.6 3.4 3.6 4.4"/></svg>Hacer un pedido con descuento</button>
+    <a class="b b-ghost" href="#" id="rvBack">Ver el catálogo</a>
+  </div>
+</div>
+
+<!-- Vista: QR para mostrar o imprimir -->
+<div class="qv" id="vQr" hidden>
+  <div class="qcard" id="qcard">
+    <div class="q-logo" id="qLogo"></div>
+    <p class="q-ey">Gracias por tu compra</p>
+    <h1 class="q-h">Tu regalo: <span class="q-off" id="qPct"></span></h1>
+    <p class="q-sub" id="qWhat"></p>
+    <div class="q-code" id="qCode"></div>
+    <p class="q-scan">Escaneá con la cámara para ver tu código</p>
+    <p class="q-g">y si querés, dejanos tu reseña en Google</p>
+  </div>
+  <div class="q-acts">
+    <button class="b" id="qPrint" type="button">Imprimir</button>
+    <a class="b b-brand" href="#resena">Probar en este celular</a>
+    <a class="b b-ghost" href="#">Volver al catálogo</a>
+  </div>
+</div>
+
+<!-- Hoja: pedido -->
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="shCart" aria-label="Tu pedido" hidden>
+  <div class="sh-head"><h2 id="cartH">Tu pedido</h2><button class="x" data-close type="button" aria-label="Cerrar">✕</button></div>
+  <div class="sh-body">
+    <ul class="lines" id="lines"></ul>
+    <div class="tot" id="tot"></div>
+    <label class="fld"><span>Tu nombre</span><input id="cName" autocomplete="name" placeholder="Para saber quién pide"></label>
+    <button class="b b-wa b-big" id="sendOrder" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9.5c.4 2 1.6 3.4 3.6 4.4"/></svg><span id="sendLbl">Enviar pedido por WhatsApp</span></button>
+  </div>
+</section>
+
+<!-- Hoja: así le llega al negocio (solo demo) -->
+<section class="sheet chat" id="shChat" aria-label="Así le llega al negocio" hidden>
+  <div class="sh-head"><h2>Así le llega al negocio</h2><button class="x" data-close type="button" aria-label="Cerrar">✕</button></div>
+  <div class="ch-top"><div class="ch-av" id="chAv"></div><div><b id="chName"></b><small>WhatsApp del negocio</small></div></div>
+  <div class="ch-body"><div class="bub" id="bub"></div></div>
+  <p class="ch-note">En la versión real se abre WhatsApp con este mensaje listo para enviar.</p>
+</section>
+
+<!-- Hoja: funciones de la demo -->
+<section class="sheet" id="shFx" aria-label="Funciones" hidden>
+  <div class="sh-head"><h2>Mostrá cómo funciona</h2><button class="x" data-close type="button" aria-label="Cerrar">✕</button></div>
+  <div class="sh-body fx">
+    <button class="fx-row" id="fxOrder" type="button"><i>1</i><span><b>Pedido por WhatsApp</b><small>Suma productos y muestra cómo le llega el pedido al negocio</small></span></button>
+    <div class="fx-row as-lbl"><i>2</i><span><b>Mostrar u ocultar precios</b><small id="fxPriceHint">Cada negocio elige si los muestra</small></span><button class="sw" id="fxPrice" role="switch" aria-checked="false" type="button"><span></span></button></div>
+    <button class="fx-row" id="fxQr" type="button"><i>3</i><span><b>QR de regalo y reseñas</b><small>Tu cliente lo escanea con su celular y ve su descuento</small></span></button>
+    <div class="fx-row as-lbl col"><span class="lbl-sm">Color de la marca</span><div class="sws" id="sws"></div></div>
+    <button class="fx-row" id="fxEdit" type="button" hidden><i>✎</i><span><b>Editar este negocio</b><small>Nombre, color, logo y productos</small></span></button>
+  </div>
+</section>
+
+<!-- Hoja: armar el negocio del cliente -->
+<section class="sheet tall" id="shEdit" aria-label="Armá el catálogo" hidden>
+  <div class="sh-head"><h2>Armá el catálogo de tu cliente</h2><button class="x" data-close type="button" aria-label="Cerrar">✕</button></div>
+  <div class="sh-body">
+    <label class="fld"><span>Nombre del negocio</span><input id="eName" maxlength="40" placeholder="Ej.: Ferretería El Tornillo"></label>
+    <label class="fld"><span>Rubro o frase corta</span><input id="eSub" maxlength="60" placeholder="Ej.: Herramientas y bulonería"></label>
+    <div class="fld"><span>Logo <i>(opcional)</i></span><label class="up"><input id="eLogo" type="file" accept="image/*" class="vh"><span id="eLogoLbl">Elegir foto del logo</span></label></div>
+    <div class="fld"><span>Productos</span>
+      <div class="eprods" id="eProds"></div>
+      <label class="up add"><input id="eAdd" type="file" accept="image/*" class="vh">+ Sacar o elegir foto de un producto</label>
+    </div>
+    <button class="b b-brand b-big" id="eDone" type="button">Ver su catálogo</button>
+    <button class="b b-ghost" id="eReset" type="button">Empezar de cero</button>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="vendor/qrcode.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
