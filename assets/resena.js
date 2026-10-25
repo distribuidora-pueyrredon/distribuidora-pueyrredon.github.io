@@ -14,6 +14,7 @@ const CONF={
 const $=id=>document.getElementById(id);
 const LBL=['','Muy mala','Mala','Regular','Buena','¡Excelente!'];
 const KEY='resena_'+CONF.prefijo;
+const G=!!CONF.google;
 const src=new URLSearchParams(location.search).get('o')||'directo';
 let stars=0;const picked=new Set();
 
@@ -77,7 +78,9 @@ function showTicket(rec,fresh){
   $('thanks').textContent=fresh?'Tu descuento ya está listo':'Ya tenés tu descuento';
   $('order').href=waLink(`Hola, quiero hacer un pedido. Tengo el código ${rec.code} de ${CONF.pct}% OFF.`);
   if(rec.msg){$('resend').href=rec.msg;$('resend').hidden=false}
-  $('gbox').hidden=!(CONF.google&&rec.stars>=4);if(CONF.google)$('gbtn').href=CONF.google;
+  // Google: se invita a todos por igual (Google no permite pedirla solo a los conformes ni darla a cambio de algo)
+  $('gbox').hidden=!CONF.google;if(CONF.google)$('gbtn').href=CONF.google;
+  if(G){$('thanksEy').textContent='¡Gracias por elegirnos!';$('thanks').textContent=`Tu regalo: ${CONF.pct}% OFF`;$('howUse').textContent='Mostrá esta pantalla o pasanos el código al hacer tu pedido.'}
   window.scrollTo({top:0,behavior:fresh?'smooth':'auto'});
 }
 $('gbtn').onclick=()=>track('resena_google',{origen:src});
@@ -90,5 +93,11 @@ $('again').onclick=()=>{$('paso2').hidden=true;$('paso1').hidden=false;stars=0;p
 let tt;function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),1800)}
 
 track('resena_abierta',{origen:src});
-const prev=store.get();
-if(prev&&new Date(prev.until)>new Date())showTicket(prev,false);
+const prev=store.get(),hasPrev=prev&&new Date(prev.until)>new Date();
+if(G){
+  // Modo Google: el descuento es un regalo para todos los que escanean; la reseña en Google es opcional.
+  document.body.classList.add('modo-google');
+  $('acts').before($('gbox'));$('again').textContent='¿Algo para mejorar? Contanos en privado';
+  const rec=hasPrev?prev:{code:newCode(),until:new Date(Date.now()+CONF.dias*864e5).toISOString(),stars:0};
+  if(!hasPrev)store.set(rec);showTicket(rec,!hasPrev);
+}else if(hasPrev)showTicket(prev,false);
