@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dejanos tu opinión · Distribuidora Pueyrredón</title>
+<meta name="description" content="Contanos cómo te atendimos y llevate un descuento para tu próximo pedido.">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_AR">
+<meta property="og:title" content="Dejanos tu opinión y llevate un descuento">
+<meta property="og:description" content="Contanos cómo te atendimos en Distribuidora Pueyrredón y llevate un descuento para tu próximo pedido.">
+<meta property="og:image" content="https://distribuidora-pueyrredon.github.io/img/og.jpg">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="img/icono.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:ital,wght@0,600;0,700;1,700&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/resena.css">
+<script src="assets/comun.js"></script>
+</head>
+<body class="rs-body">
+<header class="rs-top"><a href="./" aria-label="Distribuidora Pueyrredón, inicio"><img src="img/logo-pueyrredon.png" alt="Pueyrredón Distribuidora" width="159" height="36"></a></header>
+
+<main class="rs">
+  <!-- Paso 1: la opinión -->
+  <section class="rs-card" id="paso1">
+    <p class="eyebrow" id="teaser">Tu opinión tiene premio</p>
+    <h1>¿Cómo te atendimos?</h1>
+    <p class="rs-sub" id="sub">Contanos en un minuto y te damos un descuento para tu próximo pedido.</p>
+
+    <div class="stars" id="stars" role="radiogroup" aria-label="Calificación">
+      <button type="button" role="radio" aria-checked="false" data-v="1" aria-label="1 estrella"></button>
+      <button type="button" role="radio" aria-checked="false" data-v="2" aria-label="2 estrellas"></button>
+      <button type="button" role="radio" aria-checked="false" data-v="3" aria-label="3 estrellas"></button>
+      <button type="button" role="radio" aria-checked="false" data-v="4" aria-label="4 estrellas"></button>
+      <button type="button" role="radio" aria-checked="false" data-v="5" aria-label="5 estrellas"></button>
+    </div>
+    <p class="stars-lbl" id="starsLbl">Tocá las estrellas</p>
+
+    <div class="rs-more" id="more" hidden>
+      <p class="rs-q">¿Qué destacás?</p>
+      <div class="chips" id="chips"></div>
+      <label class="fld"><span>Contanos algo más <i>(opcional)</i></span><textarea id="txt" rows="3" maxlength="500" placeholder="¿Qué te gustó? ¿Qué podemos mejorar?"></textarea></label>
+      <label class="fld"><span>Tu nombre o el de tu comercio</span><input id="who" autocomplete="organization" maxlength="60" placeholder="Ej.: Electricidad San Martín"></label>
+      <a class="btn wa big" id="send" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9.5c.4 2 1.6 3.4 3.6 4.4"/></svg>Enviar opinión y ver mi descuento</a>
+      <p class="rs-fine">Tu opinión nos llega por WhatsApp junto con tu código.</p>
+    </div>
+  </section>
+
+  <!-- Paso 2: el descuento -->
+  <section class="rs-card ticket-wrap" id="paso2" hidden>
+    <p class="eyebrow" id="thanksEy">¡Gracias!</p>
+    <h1 id="thanks">Tu descuento ya está listo</h1>
+    <div class="ticket" id="ticket">
+      <div class="t-top">
+        <img src="img/logo-pueyrredon-blanco.png" alt="" width="120" height="27">
+        <span class="t-live" aria-hidden="true"><i></i>Válido</span>
+      </div>
+      <p class="t-pct"><b id="pct">5%</b><span>OFF</span></p>
+      <p class="t-what" id="what">en tu próximo pedido</p>
+      <div class="t-code"><small>Tu código</small><b id="code">PY-0000</b></div>
+      <p class="t-until" id="until">Válido hasta el 24/11</p>
+    </div>
+    <p class="rs-fine center" id="howUse">Mostrá esta pantalla o pasanos el código al hacer tu pedido.</p>
+    <div class="acts">
+      <a class="btn wa big" id="order" href="#" target="_blank" rel="noopener" data-wa="resena_pedido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9.5c.4 2 1.6 3.4 3.6 4.4"/></svg>Hacer un pedido con descuento</a>
+      <div class="acts-2">
+        <button class="btn" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span>Copiar código</span></button>
+        <a class="btn" href="catalogo.html">Ver catálogo</a>
+      </div>
+      <a class="btn ghost resend" id="resend" href="#" target="_blank" rel="noopener" hidden>¿No se envió tu opinión? Enviala de nuevo</a>
+    </div>
+
+    <div class="gbox" id="gbox" hidden>
+      <p><b>¿Nos ayudás también en Google?</b> Contale a otros comercios cómo te atendimos. Es opcional y no cambia tu descuento.</p>
+      <a class="btn" id="gbtn" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fbbc04" d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg>Opinar en Google</a>
+    </div>
+    <button class="linkish" id="again" type="button">Dejar otra opinión</button>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="assets/resena.js"></script>
+</body>
+</html>
