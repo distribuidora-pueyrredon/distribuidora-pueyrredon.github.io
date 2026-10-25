@@ -8,7 +8,8 @@ const CONF={
   pct:5,                         // % de descuento
   que:'en tu próximo pedido',
   dias:30,                       // validez del código
-  google:'',                     // link "Pedir opiniones" del Perfil de Google; vacío = no se muestra
+  // Link "Pedir opiniones" del Perfil de Google (g.page/r/…/review). Mientras no esté, abre la búsqueda del perfil en Maps.
+  google:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('Distribuidora Pueyrredón mayorista de iluminación'),
   destacados:['Atención','Precios','Variedad','Rapidez de entrega','Embalaje','Asesoramiento'],
 };
 const $=id=>document.getElementById(id);
