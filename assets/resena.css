@@ -68,3 +68,9 @@
 .modo-google .gbox .btn{background:var(--blue);border-color:var(--blue);color:#fff;height:52px;font-size:17px;border-radius:12px}
 .modo-google .gbox .btn svg{width:22px;height:22px}
 .modo-google .acts .btn.wa.big{height:48px;font-size:16px}
+.sin-tarjeta .acts-2{grid-template-columns:1fr}
+.t-pct.largo b{font-size:48px;line-height:1.05;padding:10px 0 4px}
+.validando .t-live,.validando .acts,.validando .gbox,.validando #again,.validando #howUse{visibility:hidden}
+.validando .t-code b,.validando .t-pct,.validando .t-what{opacity:.35;animation:latido 1.2s ease-in-out infinite}
+@keyframes latido{50%{opacity:.15}}
+#retry{width:100%}

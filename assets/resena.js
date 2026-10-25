@@ -1,33 +1,29 @@
-/* Reseña con descuento. Se abre desde el QR (resena.html?o=qr).
-   La opinión llega por WhatsApp junto con el código, así el negocio puede verificarlo al recibir el pedido.
-   Todo lo que cambia de un negocio a otro está en CONF. */
+/* Regalo + reseña en Google. Se abre desde el QR de cada tarjeta: resena.html?p=K7QM3XPA
+   El pase lo valida la planilla de Google de Pueyrredón (script en Extensiones → Apps Script):
+   el primer celular que escanea recibe un código de un solo uso y desde otro celular no se ve nada.
+   El beneficio, la vigencia y el link de Google se cambian en la pestaña Campaña de la planilla. */
 const CONF={
   negocio:'Distribuidora Pueyrredón',
-  wa:window.WA_NUM,
-  prefijo:'PY',
-  pct:5,                         // % de descuento
-  que:'en tu próximo pedido',
-  dias:30,                       // validez del código
-  google:'https://g.page/r/Ca6bT8VCs-9wEBM/review',   // link "Pedir opiniones" del Perfil de Google
+  api:'',                        // URL de la aplicación web de la planilla (Implementar → Aplicación web)
+  google:'https://g.page/r/Ca6bT8VCs-9wEBM/review',   // por si la planilla no responde
+  beneficio:'5% OFF',detalle:'en tu próximo pedido',
   destacados:['Atención','Precios','Variedad','Rapidez de entrega','Embalaje','Asesoramiento'],
 };
 const $=id=>document.getElementById(id);
 const LBL=['','Muy mala','Mala','Regular','Buena','¡Excelente!'];
-const KEY='resena_'+CONF.prefijo;
-const G=!!CONF.google;
-const src=new URLSearchParams(location.search).get('o')||'directo';
-let stars=0;const picked=new Set();
-
-const store={get(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
+const KEY='resena_pase',DEV='resena_cel';
+const QS=new URLSearchParams(location.search),src=QS.get('p')?'tarjeta':(QS.get('o')||'directo');
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 const fmt=d=>d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
-function newCode(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint32Array(4));return CONF.prefijo+'-'+[...r].map(n=>A[n%A.length]).join('')}
+const rnd=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(x=>'abcdefghijkmnpqrstuvwxyz23456789'[x%32]).join('');
+const cel=store.get(DEV)||(()=>{const v=rnd(16);store.set(DEV,v);return v})();
+let stars=0,codigo='';const picked=new Set();
 
-/* Textos con el descuento configurado */
-$('pct').textContent=CONF.pct+'%';$('what').textContent=CONF.que;
-$('sub').textContent=`Contanos en un minuto y te damos un ${CONF.pct}% de descuento ${CONF.que}.`;
-$('teaser').textContent=`Tu opinión vale ${CONF.pct}% OFF`;
-
-/* Estrellas */
+/* Opinión privada por WhatsApp (para lo que haya que mejorar) */
+$('teaser').textContent='Tu opinión nos ayuda';
+$('sub').textContent='Contanos en privado cómo te atendimos. Nos llega directo por WhatsApp.';
+$('send').lastChild.textContent='Enviar mi opinión';
+$('send').nextElementSibling.textContent='Tu opinión nos llega por WhatsApp.';
 const sb=[...$('stars').children];
 const paint=n=>sb.forEach((b,i)=>b.classList.toggle('on',i<n));
 sb.forEach(b=>{
@@ -41,63 +37,93 @@ sb.forEach(b=>{
     if(first){track('resena_estrellas',{estrellas:stars,origen:src});setTimeout(()=>$('more').scrollIntoView({behavior:'smooth',block:'start'}),60)}
     upd()};
 });
-
-/* Destacados */
 CONF.destacados.forEach(t=>{const c=document.createElement('button');c.type='button';c.className='chip';c.textContent=t;c.setAttribute('aria-pressed','false');
   c.onclick=()=>{picked.has(t)?picked.delete(t):picked.add(t);c.setAttribute('aria-pressed',picked.has(t));upd()};$('chips').append(c)});
-
-/* Mensaje de WhatsApp: opinión + código */
-let pending=null;
-function message(code,until){
-  const who=$('who').value.trim(),txt=$('txt').value.trim();
-  return [`${'★'.repeat(stars)}${'☆'.repeat(5-stars)} Opinión para ${CONF.negocio}`,
-    who&&`De: ${who}`,picked.size&&`${stars>=4?'Destaco':'A mejorar'}: ${[...picked].join(', ')}`,txt&&`"${txt}"`,
-    `Mi código: ${code} (${CONF.pct}% OFF ${CONF.que}, válido hasta el ${fmt(until)})`].filter(Boolean).join('\n');
-}
 function upd(){
-  const prev=store.get(),valid=prev&&new Date(prev.until)>new Date();
-  const code=valid?prev.code:(pending?.code||newCode()),until=valid?new Date(prev.until):(pending?.until||new Date(Date.now()+CONF.dias*864e5));
-  pending={code,until};$('send').href=waLink(message(code,until));
+  const who=$('who').value.trim(),txt=$('txt').value.trim();
+  $('send').href=waLink([`${'★'.repeat(stars)}${'☆'.repeat(5-stars)} Opinión para ${CONF.negocio}`,
+    who&&`De: ${who}`,picked.size&&`${stars>=4?'Destaco':'A mejorar'}: ${[...picked].join(', ')}`,txt&&`"${txt}"`].filter(Boolean).join('\n'));
 }
 $('who').oninput=$('txt').oninput=upd;
 ['who','txt'].forEach(id=>{$(id).value=''});
-
 $('send').onclick=e=>{
   if(!stars){e.preventDefault();return}
-  upd();
-  const rec={code:pending.code,until:pending.until.toISOString(),stars,who:$('who').value.trim(),msg:$('send').href};
-  store.set(rec);track('resena_enviada',{estrellas:stars,origen:src,con_texto:!!$('txt').value.trim()});
-  setTimeout(()=>showTicket(rec,true),250);
+  upd();track('resena_enviada',{estrellas:stars,origen:src,con_texto:!!$('txt').value.trim()});
+  setTimeout(()=>{$('paso1').hidden=true;$('paso2').hidden=false;window.scrollTo({top:0});toast('¡Gracias! Recibimos tu opinión')},250);
 };
-
-/* Paso 2 */
-function showTicket(rec,fresh){
-  $('paso1').hidden=true;$('paso2').hidden=false;
-  $('code').textContent=rec.code;$('until').textContent='Válido hasta el '+fmt(new Date(rec.until));
-  $('thanksEy').textContent=rec.who?`¡Gracias, ${rec.who}!`:'¡Gracias!';
-  $('thanks').textContent=fresh?'Tu descuento ya está listo':'Ya tenés tu descuento';
-  $('order').href=waLink(`Hola, quiero hacer un pedido. Tengo el código ${rec.code} de ${CONF.pct}% OFF.`);
-  if(rec.msg){$('resend').href=rec.msg;$('resend').hidden=false}
-  // Google: se invita a todos por igual (Google no permite pedirla solo a los conformes ni darla a cambio de algo)
-  $('gbox').hidden=!CONF.google;if(CONF.google)$('gbtn').href=CONF.google;
-  if(G){$('thanksEy').textContent='¡Gracias por elegirnos!';$('thanks').textContent=`Tu regalo: ${CONF.pct}% OFF`;$('howUse').textContent='Mostrá esta pantalla o pasanos el código al hacer tu pedido.'}
-  window.scrollTo({top:0,behavior:fresh?'smooth':'auto'});
-}
-$('gbtn').onclick=()=>track('resena_google',{origen:src});
-$('copy').onclick=async()=>{const c=$('code').textContent;
-  try{await navigator.clipboard.writeText(c)}catch(e){const t=document.createElement('textarea');t.value=c;document.body.append(t);t.select();document.execCommand('copy');t.remove()}
-  toast('Código copiado')};
 $('again').onclick=()=>{$('paso2').hidden=true;$('paso1').hidden=false;stars=0;paint(0);picked.clear();
   document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));$('more').hidden=true;$('starsLbl').textContent='Tocá las estrellas';$('starsLbl').classList.remove('set');
   ['who','txt'].forEach(id=>{$(id).value=''});window.scrollTo({top:0})};
+
+/* Paso 2: beneficio validado por la planilla */
+document.body.classList.add('modo-google');
+$('acts').before($('gbox'));$('again').textContent='¿Algo para mejorar? Contanos en privado';
+$('paso1').hidden=true;$('paso2').hidden=false;$('gbox').hidden=false;$('gbtn').href=CONF.google;
+
+function beneficio(r){
+  const b=String(r.beneficio||CONF.beneficio).trim(),m=b.match(/^(.*\S)\s+(OFF)$/i);
+  $('pct').textContent=m?m[1]:b;$('pct').parentElement.classList.toggle('largo',!m);
+  $('pct').nextElementSibling.hidden=!m;$('what').textContent=r.detalle??CONF.detalle;
+  if(r.google)$('gbtn').href=r.google;
+}
+function estado(cls,ey,h1,txt){
+  document.body.classList.remove('validando','con-codigo','sin-tarjeta');document.body.classList.add(cls);
+  $('thanksEy').textContent=ey;$('thanks').textContent=h1;$('howUse').textContent=txt||'';$('howUse').hidden=!txt;
+  $('ticket').hidden=cls!=='con-codigo'&&cls!=='validando';$('copy').hidden=cls!=='con-codigo';$('retry').hidden=true;
+  $('order').href=waLink(codigo&&cls==='con-codigo'?`Hola, quiero hacer un pedido. Tengo el código ${codigo} de ${$('pct').textContent} ${$('pct').nextElementSibling.hidden?'':'OFF'}`.trim()+'.':'Hola, quiero hacer un pedido.');
+  $('order').lastChild.textContent=cls==='con-codigo'?'Hacer un pedido con descuento':'Hacer un pedido';
+  $('gbox').querySelector('p').innerHTML='<b>¿Nos dejás tu reseña en Google Maps?</b> Nos ayuda a que otros comercios nos encuentren.'+(cls==='con-codigo'?' Es opcional: el regalo ya es tuyo.':'');
+}
+function sinTarjeta(){
+  estado('sin-tarjeta','Distribuidora Pueyrredón','¡Gracias por elegirnos!');
+}
+const MOTIVO={
+  usado:['Esta tarjeta ya se usó','El beneficio ya se entregó','Cada tarjeta da un solo beneficio, en el primer celular que la escanea.'],
+  canjeado:['¡Gracias por tu compra!','Ya usaste tu beneficio','Este código ya se aplicó en un pedido.'],
+  vencido:['Tu código venció','Este beneficio ya no está vigente','Si tenés una tarjeta nueva, escaneala para ver tu beneficio.'],
+  invalido:['No reconocemos esta tarjeta','Revisá que el QR sea de una tarjeta de Pueyrredón','Si el problema sigue, escribinos por WhatsApp.'],
+  agotado:['Distribuidora Pueyrredón','Se terminaron los beneficios de esta promoción',''],
+  agotado_hoy:['Distribuidora Pueyrredón','Por hoy se terminaron los beneficios','Volvé a escanear mañana.'],
+  inactiva:['Distribuidora Pueyrredón','La promoción terminó','¡Gracias por elegirnos!'],
+};
+function mostrar(r){
+  beneficio(r);
+  if(r.ok){
+    codigo=r.codigo;estado('con-codigo','¡Gracias por elegirnos!',r.nuevo?'Tu regalo está listo':'Tu regalo','Mostrá esta pantalla o pasanos el código al hacer tu pedido.');
+    $('code').textContent=r.codigo;$('until').textContent=`Válido hasta el ${fmt(new Date(r.vence))} · un solo uso`;
+    if(r.nuevo)track('resena_codigo',{origen:src});
+  }else if(MOTIVO[r.motivo]){codigo='';estado('sin-tarjeta',...MOTIVO[r.motivo]);track('resena_rechazo',{motivo:r.motivo})}
+  else if(r.motivo==='sin_pase')sinTarjeta();
+  else falla();
+}
+function falla(){
+  estado('sin-tarjeta','Sin conexión','No pudimos validar tu tarjeta','Revisá tu conexión y probá de nuevo.');$('retry').hidden=false;
+}
+let n=0;
+function api(q,cb){
+  if(!CONF.api){cb(null);return}
+  const fn='rs_cb'+(++n),s=document.createElement('script');let done=false;
+  const fin=r=>{if(done)return;done=true;delete window[fn];s.remove();cb(r)};
+  window[fn]=fin;s.onerror=()=>fin(null);setTimeout(()=>fin(null),15000);
+  s.src=CONF.api+(CONF.api.includes('?')?'&':'?')+new URLSearchParams({...q,d:cel,cb:fn});document.head.append(s);
+}
+function validar(q){
+  estado('validando','Un momento','Validando tu tarjeta…');$('code').textContent='······';$('until').textContent='Consultando…';
+  api(q,r=>r?mostrar(r):(q.f?sinTarjeta():falla()));
+}
+$('retry').onclick=()=>arranque();
+$('gbtn').onclick=()=>{track('resena_google',{origen:src});if(codigo)api({a:'google',c:codigo},()=>{})};
+$('copy').onclick=async()=>{const c=$('code').textContent;
+  try{await navigator.clipboard.writeText(c)}catch(e){const t=document.createElement('textarea');t.value=c;document.body.append(t);t.select();document.execCommand('copy');t.remove()}
+  toast('Código copiado')};
 let tt;function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),1800)}
 
+/* El pase queda guardado en este celular (no en el link) para volver a ver el código */
+const qp=(QS.get('p')||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+if(qp){store.set(KEY,qp);history.replaceState(null,'',location.pathname)}
 track('resena_abierta',{origen:src});
-const prev=store.get(),hasPrev=prev&&new Date(prev.until)>new Date();
-if(G){
-  // Modo Google: el descuento es un regalo para todos los que escanean; la reseña en Google es opcional.
-  document.body.classList.add('modo-google');
-  $('acts').before($('gbox'));$('again').textContent='¿Algo para mejorar? Contanos en privado';
-  const rec=hasPrev?prev:{code:newCode(),until:new Date(Date.now()+CONF.dias*864e5).toISOString(),stars:0};
-  if(!hasPrev)store.set(rec);showTicket(rec,!hasPrev);
-}else if(hasPrev)showTicket(prev,false);
+function arranque(){
+  const p=store.get(KEY);beneficio({});
+  if(p)validar({p});else if(src==='qr')validar({f:1});else sinTarjeta();
+}
+arranque();
