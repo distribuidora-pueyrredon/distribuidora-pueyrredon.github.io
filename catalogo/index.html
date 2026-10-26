@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es-AR" data-tienda="tienda.json">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Distribuidora Pueyrredón</title>
+<meta name="description" content="Iluminación y material eléctrico por mayor · envíos a todo el país">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../img/icono.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="core/catalogo.css">
+<link rel="modulepreload" href="core/catalogo.js"><link rel="modulepreload" href="core/datos.js">
+</head>
+<body>
+<!-- Vista: catálogo -->
+<div id="vCat">
+  <header class="st-head">
+    <div class="st-id">
+      <div class="st-logo" id="stLogo"></div>
+      <div class="st-txt"><h1 id="stName"></h1><p id="stSub"></p></div>
+    </div>
+    <div class="st-tags" id="stTags"></div>
+  </header>
+  <div class="st-tools" id="tools">
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar productos" autocomplete="off"></label>
+    <div class="cats" id="cats"></div>
+  </div>
+  <main class="grid" id="grid"></main>
+  <div class="mas" id="mas" aria-hidden="true" hidden></div>
+  <div class="empty" id="empty" hidden></div>
+  <button class="cartbar" id="cartbar" type="button" hidden><span class="cb-n" id="cbN">0</span><span id="cbLbl">Ver mi pedido</span><b id="cbTot"></b></button>
+</div>
+
+<!-- Hoja: pedido -->
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="shCart" aria-label="Tu pedido" hidden>
+  <div class="sh-head"><h2 id="cartH">Tu pedido</h2><button class="x" data-close type="button" aria-label="Cerrar">✕</button></div>
+  <div class="sh-body">
+    <ul class="lines" id="lines"></ul>
+    <div class="tot" id="tot"></div>
+    <label class="fld" id="cNameFld"><span>Tu nombre</span><input id="cName" autocomplete="name" placeholder="Para saber quién pide"></label>
+    <button class="b b-wa b-big" id="sendOrder" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9.5c.4 2 1.6 3.4 3.6 4.4"/></svg><span id="sendLbl">Enviar pedido por WhatsApp</span></button>
+    <p class="sin-wa" id="sinWa" hidden>Este comercio todavía no cargó su WhatsApp</p>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="core/catalogo.js"></script>
+</body>
+</html>

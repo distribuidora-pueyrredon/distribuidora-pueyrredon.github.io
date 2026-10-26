@@ -249,7 +249,7 @@ function options(lbl,opts,cur,on,cls=''){const f=document.createElement('div');f
   const s=document.createElement('div');s.className='opts '+cls;opts.forEach(([v,t,img])=>{const b=document.createElement('button');b.type='button';b.innerHTML=(img?`<img src="${img}" alt="">`:'')+t;b.setAttribute('aria-pressed',v===cur);b.onclick=()=>{on(v);buildSel();render()};s.append(b)});f.append(s);return f}
 function buildSel(){
   $('selEmpty').hidden=!!sel;$('selBox').hidden=!sel;$('mAdjust').hidden=!sel;if(!sel){sheet(false);return}const it=sel,p=P[it.id],c=$('selControls');
-  $('selName').textContent=p.name;$('selImg').src='img/cat/'+p.thumb+'.jpg';$('selCat').href='catalogo.html#q='+encodeURIComponent(p.q);
+  $('selName').textContent=p.name;$('selImg').src='img/cat/'+p.thumb+'.jpg';$('selCat').href='catalogo/?q='+encodeURIComponent(p.q);
   $('selWa').href=waLink(`Hola! Quiero consultar precio mayorista de: ${p.name}${it.type==='guirnalda'?` (${it.m} m)`:''}${it.type==='bajo'?` (${it.len} cm)`:''}${it.type==='plafon'?` (${it.size} cm)`:''}${it.type==='neon'?` (${NEON[it.color][0].toLowerCase()})`:''}${p.rings?` (${it.ring})`:''}.`);
   c.innerHTML='';
   if(it.type==='guirnalda')c.append(options('Largo',[[6,'6 m · 10 lámparas'],[10,'10 m · 20 lámparas']],it.m,v=>it.m=v));

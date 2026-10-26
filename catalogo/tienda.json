@@ -1,0 +1,17 @@
+{
+ "id": "pueyrredon",
+ "nombre": "Distribuidora Pueyrredón",
+ "bajada": "Iluminación y material eléctrico por mayor · envíos a todo el país",
+ "tipo": "Mayorista",
+ "logo": "../img/logo-pueyrredon.png",
+ "logoCuadrado": false,
+ "icono": "../img/icono.png",
+ "color": "#06518b",
+ "wa": "5491176033649",
+ "precios": false,
+ "ga4": "G-VE2V32DHY0",
+ "planilla": {
+  "web": "",
+  "ajustes": ""
+ }
+}
